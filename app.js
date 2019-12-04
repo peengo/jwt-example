@@ -12,8 +12,6 @@ const { PORT, MONGO_URL, SECRET } = process.env;
 
 const app = express();
 
-Object.assign(app.locals, { jwt, SECRET });
-
 app.use(express.json());
 
 app.use('/users', require('./routes/users'));
@@ -37,7 +35,15 @@ app.use((error, req, res, next) => {
     // res.json({ error: error.message });
 
     console.error(error);
-    res.status(500).json();
+
+    if (error instanceof SyntaxError && error.status === 400 && error.message.includes('JSON')) {
+        res.status(400).json({ error: 'JSON error' });
+    } else if (error instanceof jwt.JsonWebTokenError) {
+        res.status(400).json({ error: 'token error' });
+    }
+    else {
+        res.status(500).json();
+    }
 });
 
 (async () => {
@@ -49,7 +55,7 @@ app.use((error, req, res, next) => {
         const users = db.collection('users');
         const posts = db.collection('posts');
 
-        Object.assign(app.locals, { users, posts });
+        Object.assign(app.locals, { users, posts, jwt, SECRET });
 
         app.listen(PORT, () => console.log(`API listening on port ${PORT}!`));
     } catch (error) {

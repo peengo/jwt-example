@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { verifyToken } = require('../middlewares/auth');
-const { postSchema/*, titleConstraint, bodyConstraint*/ } = require('../schemas/post');
+const { postSchema } = require('../schemas/post');
 const { ObjectID } = require('mongodb');
 
 // CREATE
@@ -16,7 +16,7 @@ router.post('/', verifyToken, async (req, res, next) => {
         if (user) {
             const { error: validationErrors } = postSchema.validate(
                 { title, body },
-                { abortEarly: false }
+                { abortEarly: false, presence: 'required' }
             );
 
             if (!validationErrors) {
@@ -69,7 +69,60 @@ router.get('/:id', async (req, res, next) => {
                 res.status(404).json({ error: 'post not found' });
             }
         } else {
-            res.status(400).json({ error: 'invalid post id format' });
+            res.status(400).json({ error: 'invalid post format' });
+        }
+    } catch (e) {
+        next(e);
+    }
+});
+
+// UPDATE
+router.patch('/:id', verifyToken, async (req, res, next) => {
+    try {
+        const { posts, payload } = req.app.locals;
+        const { id } = req.params;
+        const { title, body } = req.body;
+
+        if (ObjectID.isValid(id)) {
+            const post = await posts.findOne({ _id: ObjectID(id) });
+
+            if (post) {
+                if (post.user_id.toHexString() === payload.sub) {
+
+                    let updateObject = {};
+
+                    const { error: validationErrors } = postSchema.validate(
+                        { title, body },
+                        { abortEarly: false }
+                    );
+
+                    if (!validationErrors) {
+                        if (title) updateObject.title = title;
+                        if (body) updateObject.body = body;
+
+                        if (Object.entries(updateObject).length) {
+                            const updatePost = await posts.updateOne({ _id: post._id }, { $set: updateObject });
+
+                            if (updatePost.modifiedCount) {
+                                res.json();
+                            } else {
+                                next(updatePost);
+                            }
+                        } else {
+                            res.json();
+                        }
+                    } else {
+                        console.error(validationErrors);
+                        res.status(400).json({ error: { validation: validationErrors.details } });
+                    }
+                } else {
+                    res.status(403).json();
+                }
+            } else {
+                res.status(404).json({ error: 'post not found' });
+            }
+        } else {
+            res.status(400).json({ error: 'invalid post id' });
         }
     } catch (e) {
         next(e);
@@ -101,7 +154,7 @@ router.delete('/:id', verifyToken, async (req, res, next) => {
                 res.status(404).json({ error: 'post not found' });
             }
         } else {
-            res.status(400).json({ error: 'invalid post id format' });
+            res.status(400).json({ error: 'invalid post format' });
         }
     } catch (e) {
         next(e);

@@ -3,7 +3,7 @@ const router = express.Router();
 
 const bcrypt = require('bcrypt');
 const { verifyToken } = require('../middlewares/auth');
-const { userSchema, usernameConstraint, passwordConstraint } = require('../schemas/user');
+const { userSchema } = require('../schemas/user');
 
 const SALT_ROUNDS = 10;
 
@@ -15,7 +15,7 @@ router.post('/', async (req, res, next) => {
 
         const { error: validationErrors } = userSchema.validate(
             { username, password },
-            { abortEarly: false }
+            { abortEarly: false, presence: 'required' }
         );
 
         if (!validationErrors) {
@@ -76,12 +76,14 @@ router.patch('/:username', verifyToken, async (req, res, next) => {
         if (user) {
             if (user._id.toHexString() === payload.sub) {
                 let updateObject = {};
-                let validationErrorDetails = [];
 
-                if (username) {
-                    const { error: usernameValidationError } = usernameConstraint.validate({ username });
+                const { error: validationErrors } = userSchema.validate(
+                    { username, password },
+                    { abortEarly: false }
+                );
 
-                    if (!usernameValidationError) {
+                if (!validationErrors) {
+                    if (username) {
                         const usernameTaken = await users.findOne({ username });
 
                         if (!usernameTaken) {
@@ -89,24 +91,14 @@ router.patch('/:username', verifyToken, async (req, res, next) => {
                         } else {
                             res.status(409).json({ error: 'username already exists' });
                         }
-                    } else {
-                        validationErrorDetails.push(usernameValidationError.details);
                     }
-                }
 
-                if (password) {
-                    const { error: passwordValidationError } = passwordConstraint.validate({ password });
-
-                    if (!passwordValidationError) {
+                    if (password) {
                         const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
                         updateObject.password = hash;
-                    } else {
-                        validationErrorDetails.push(passwordValidationError.details);
                     }
-                }
 
-                if (!validationErrorDetails.length) {
                     if (Object.entries(updateObject).length) {
                         const updateUser = await users.updateOne({ _id: user._id }, { $set: updateObject });
 
@@ -119,8 +111,8 @@ router.patch('/:username', verifyToken, async (req, res, next) => {
                         res.json();
                     }
                 } else {
-                    console.error(validationErrorDetails);
-                    res.status(400).json({ error: { validation: validationErrorDetails } });
+                    console.error(validationErrors);
+                    res.status(400).json({ error: { validation: validationErrors.details } });
                 }
             } else {
                 res.status(403).json();
