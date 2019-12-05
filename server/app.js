@@ -48,9 +48,11 @@ app.use((error, req, res, next) => {
 
 (async () => {
     try {
+        console.log('Connecting to MongoDB ...');
         const client = await MongoClient.connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
         if (client.isConnected()) console.log('MongoDB Connected');
+        
         const db = client.db();
         const users = db.collection('users');
         const posts = db.collection('posts');
