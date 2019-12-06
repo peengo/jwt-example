@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors')
 const { MongoClient } = require('mongodb');
 const jwt = require('jsonwebtoken');
 
@@ -13,6 +14,7 @@ const { PORT, MONGO_URL, SECRET } = process.env;
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 app.use('/users', require('./routes/users'));
 app.use('/posts', require('./routes/posts'));

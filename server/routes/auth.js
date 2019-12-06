@@ -3,6 +3,7 @@ const router = express.Router();
 
 const bcrypt = require('bcrypt');
 const { userSchema } = require('../schemas/user');
+const { formatValidationErrors } = require('../utils/formatValidationErrors');
 
 router.post('/', async (req, res, next) => {
     try {
@@ -23,14 +24,14 @@ router.post('/', async (req, res, next) => {
 
                     res.json({ token });
                 } else {
-                    res.json({ error: 'invalid credentials' });
+                    res.json({ error: { message: 'invalid credentials' } });
                 }
             } else {
-                res.status(404).json({ error: 'user does not exist' });
+                res.status(404).json({ error: { message: 'user does not exist' } });
             }
         } else {
-            console.error(validationErrors);
-            res.status(400).json({ error: { validation: validationErrors.details } });
+            // console.error(validationErrors);
+            res.status(400).json({ error: { validation: formatValidationErrors(validationErrors.details) } });
         }
     } catch (e) {
         next(e);
