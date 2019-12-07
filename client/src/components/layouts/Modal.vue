@@ -58,46 +58,26 @@ export default {
   methods: {
     async submitUser() {
       try {
+        this.resetValidation();
         const response = await this.postUser();
 
-        if (response.data.error) {
-          const message = response.data.error.message;
-          this.error.message = message;
-          this.error.state = false;
+        if (response.data.token) {
+          const token = response.data.token;
 
-          this.validation.username.message = "";
-          this.validation.username.state = null;
+          localStorage.setItem("id_token", token);
+          this.loginModalShow = false;
 
-          this.validation.password.message = "";
-          this.validation.password.state = null;
-        } else {
-          this.error.message = "";
-          this.error.state = null;
+          const jwt = localStorage.getItem("id_token");
 
-          this.validation.username.message = "";
-          this.validation.username.state = null;
+          if (jwt) {
+            this.$http.defaults.headers.common[
+              "Authorization"
+            ] = `Bearer ${jwt}`;
 
-          this.validation.password.message = "";
-          this.validation.password.state = null;
-
-          if (response.data.token) {
-            const token = response.data.token;
-
-            localStorage.setItem("id_token", token);
-            this.loginModalShow = false;
-
-            const jwt = localStorage.getItem("id_token");
-
-            if (jwt) {
-              this.$http.defaults.headers.common[
-                "Authorization"
-              ] = `Bearer ${jwt}`;
-
-              this.$http
-                .post("/auth", {})
-                .then(res => console.log(res))
-                .catch(e => console.error(e));
-            }
+            this.$http
+              .post("/auth", {})
+              .then(res => console.log(res))
+              .catch(e => console.error(e));
           }
         }
       } catch (error) {
@@ -106,9 +86,6 @@ export default {
 
           this.error.message = message;
           this.error.state = false;
-        } else {
-          this.error.message = "";
-          this.error.state = null;
         }
 
         if (error.response.data.error.validation) {
@@ -129,22 +106,26 @@ export default {
             this.validation.password.message = "";
             this.validation.password.state = true;
           }
-        } else {
-          this.validation.username.message = "";
-          this.validation.username.state = null;
-
-          this.validation.password.message = "";
-          this.validation.password.state = null;
         }
       }
     },
     async postUser() {
-      const response = await this.$http.post("auth", {
+      const response = await this.$http.post("/auth", {
         username: this.username,
         password: this.password
       });
 
       return response;
+    },
+    resetValidation() {
+      this.validation.username.message = "";
+      this.validation.username.state = null;
+
+      this.validation.password.message = "";
+      this.validation.password.state = null;
+
+      this.error.message = "";
+      this.error.state = null;
     }
   }
 };

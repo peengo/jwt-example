@@ -1,9 +1,20 @@
 const express = require('express');
 const router = express.Router();
 
+const {
+    error, formatValidationErrors,
+    USER_NOT_FOUND,
+    POST_NOT_FOUND,
+    INVALID_POST_FORMAT,
+    INVALID_POST_ID,
+    POSTS_NOT_FOUND
+} = require('../utils/errors');
+
 const { verifyToken } = require('../middlewares/auth');
 const { postSchema } = require('../schemas/post');
 const { ObjectID } = require('mongodb');
+
+const DELETED_USER = '[deleted user]';
 
 // CREATE
 router.post('/', verifyToken, async (req, res, next) => {
@@ -33,11 +44,10 @@ router.post('/', verifyToken, async (req, res, next) => {
                     next(insertPost);
                 }
             } else {
-                console.error(validationErrors);
-                res.status(400).json({ error: { validation: validationErrors.details } });
+                res.status(400).json(formatValidationErrors(validationErrors));
             }
         } else {
-            res.status(404).json({ error: 'user not found' });
+            res.status(404).json(error(USER_NOT_FOUND));
         }
     } catch (e) {
         next(e);
@@ -47,29 +57,68 @@ router.post('/', verifyToken, async (req, res, next) => {
 //READ
 router.get('/:id', async (req, res, next) => {
     try {
-        const { users, posts } = req.app.locals;
+        const { posts } = req.app.locals;
         const { id } = req.params;
 
         if (ObjectID.isValid(id)) {
-            const post = await posts.findOne({ _id: ObjectID(id) });
+            let [post] = await posts.aggregate([
+                {
+                    $lookup:
+                    {
+                        from: 'users',
+                        localField: 'user_id',
+                        foreignField: '_id',
+                        as: 'userDetails'
+                    }
+                },
+                { $match: { _id: ObjectID(id) } },
+                { $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$userDetails', 0] }, '$$ROOT'] } } },
+                { $project: { userDetails: 0, user_id: 0, password: 0, _id: 0 } }
+            ]).toArray();
+
+            if (typeof post.username === 'undefined') post.username = DELETED_USER;
 
             if (post) {
-                const user = await users.findOne({ _id: post.user_id });
-
-                if (user) {
-                    delete post._id;
-                    delete post.user_id;
-                    post.author = user.username;
-
-                    res.json(post);
-                } else {
-                    res.status(404).json({ error: 'user not found' });
-                }
+                res.json(post);
             } else {
-                res.status(404).json({ error: 'post not found' });
+                res.status(404).json(error(POST_NOT_FOUND));
             }
         } else {
-            res.status(400).json({ error: 'invalid post format' });
+            res.status(400).json(error(INVALID_POST_FORMAT));
+        }
+    } catch (e) {
+        next(e);
+    }
+});
+
+// READ ALL
+router.get('/', async (req, res, next) => {
+    try {
+        const { posts } = req.app.locals;
+
+        let postsAll = await posts.aggregate([
+            {
+                $lookup:
+                {
+                    from: 'users',
+                    localField: 'user_id',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            { $sort: { created: -1 } },
+            { $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$userDetails', 0] }, '$$ROOT'] } } },
+            { $project: { userDetails: 0, user_id: 0, password: 0 } }
+        ]).toArray();
+
+        postsAll.forEach(post => {
+            if (typeof post.username === 'undefined') post.username = DELETED_USER;
+        });
+
+        if (postsAll) {
+            res.json(postsAll);
+        } else {
+            res.status(404).json(error(POSTS_NOT_FOUND));
         }
     } catch (e) {
         next(e);
@@ -112,17 +161,16 @@ router.patch('/:id', verifyToken, async (req, res, next) => {
                             res.json();
                         }
                     } else {
-                        console.error(validationErrors);
-                        res.status(400).json({ error: { validation: validationErrors.details } });
+                        res.status(400).json(formatValidationErrors(validationErrors));
                     }
                 } else {
                     res.status(403).json();
                 }
             } else {
-                res.status(404).json({ error: 'post not found' });
+                res.status(404).json(error(POST_NOT_FOUND));
             }
         } else {
-            res.status(400).json({ error: 'invalid post id' });
+            res.status(400).json(error(INVALID_POST_ID));
         }
     } catch (e) {
         next(e);
@@ -151,10 +199,10 @@ router.delete('/:id', verifyToken, async (req, res, next) => {
                     res.status(403).json();
                 }
             } else {
-                res.status(404).json({ error: 'post not found' });
+                res.status(404).json(error(POST_NOT_FOUND));
             }
         } else {
-            res.status(400).json({ error: 'invalid post format' });
+            res.status(400).json(error(POST_NOT_FOUND));
         }
     } catch (e) {
         next(e);

@@ -1,9 +1,16 @@
 const express = require('express');
 const router = express.Router();
 
+const {
+    error, formatValidationErrors,
+    USER_EXISTS,
+    USER_NOT_FOUND
+} = require('../utils/errors');
+
 const bcrypt = require('bcrypt');
 const { verifyToken } = require('../middlewares/auth');
 const { userSchema } = require('../schemas/user');
+const { ObjectID } = require('mongodb');
 
 const SALT_ROUNDS = 10;
 
@@ -35,11 +42,27 @@ router.post('/', async (req, res, next) => {
                     next(insertUser);
                 }
             } else {
-                res.status(409).json({ error: 'username already exists' });
+                res.status(409).json(error(USER_EXISTS));
             }
         } else {
-            console.error(validationErrors);
-            res.status(400).json({ error: { validation: validationErrors.details } });
+            res.status(400).json(formatValidationErrors(validationErrors));
+        }
+    } catch (e) {
+        next(e);
+    }
+});
+
+// READ SELF
+router.get('/self', verifyToken, async (req, res, next) => {
+    try {
+        const { users, payload } = req.app.locals;
+        
+        const user = await users.findOne({ _id: ObjectID(payload.sub) }, { projection: { _id: 0, password: 0 } });
+
+        if (user) {
+            res.json(user);
+        } else {
+            res.status(404).json(error(USER_NOT_FOUND));
         }
     } catch (e) {
         next(e);
@@ -57,7 +80,7 @@ router.get('/:username', async (req, res, next) => {
         if (user) {
             res.json(user);
         } else {
-            res.status(404).json({ error: 'user not found' });
+            res.status(404).json(error(USER_NOT_FOUND));
         }
     } catch (e) {
         next(e);
@@ -89,7 +112,7 @@ router.patch('/:username', verifyToken, async (req, res, next) => {
                         if (!usernameTaken) {
                             updateObject.username = username;
                         } else {
-                            res.status(409).json({ error: 'username already exists' });
+                            res.status(409).json(error(USER_EXISTS));
                         }
                     }
 
@@ -111,14 +134,13 @@ router.patch('/:username', verifyToken, async (req, res, next) => {
                         res.json();
                     }
                 } else {
-                    console.error(validationErrors);
-                    res.status(400).json({ error: { validation: validationErrors.details } });
+                    res.status(400).json(formatValidationErrors(validationErrors));
                 }
             } else {
                 res.status(403).json();
             }
         } else {
-            res.status(404).json({ error: 'user not found' });
+            res.status(404).json(error(USER_NOT_FOUND));
         }
     } catch (e) {
         next(e);
@@ -146,7 +168,7 @@ router.delete('/:username', verifyToken, async (req, res, next) => {
                 res.status(403).json();
             }
         } else {
-            res.status(404).json({ error: 'user not found' });
+            res.status(404).json(error(USER_NOT_FOUND));
         }
     } catch (e) {
         next(e);

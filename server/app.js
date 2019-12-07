@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors')
+const cors = require('cors');
 const { MongoClient } = require('mongodb');
 const jwt = require('jsonwebtoken');
 
@@ -54,7 +54,7 @@ app.use((error, req, res, next) => {
         const client = await MongoClient.connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
         if (client.isConnected()) console.log('MongoDB Connected');
-        
+
         const db = client.db();
         const users = db.collection('users');
         const posts = db.collection('posts');
