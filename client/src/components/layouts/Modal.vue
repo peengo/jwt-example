@@ -62,23 +62,13 @@ export default {
         const response = await this.postUser();
 
         if (response.data.token) {
-          const token = response.data.token;
-
-          localStorage.setItem("id_token", token);
           this.loginModalShow = false;
 
-          const jwt = localStorage.getItem("id_token");
+          const accessToken = response.data.token;
+          localStorage.setItem("access_token", accessToken);
 
-          if (jwt) {
-            this.$http.defaults.headers.common[
-              "Authorization"
-            ] = `Bearer ${jwt}`;
-
-            this.$http
-              .post("/auth", {})
-              .then(res => console.log(res))
-              .catch(e => console.error(e));
-          }
+          await this.$store.dispatch("fetchAccessToken");
+          await this.$store.dispatch("fetchCurrentUser");
         }
       } catch (error) {
         if (error.response.data.error.message) {
@@ -116,6 +106,11 @@ export default {
       });
 
       return response;
+    },
+    async getUserSelf() {
+      const { data } = await this.$http.get("/users/self");
+
+      return data;
     },
     resetValidation() {
       this.validation.username.message = "";
