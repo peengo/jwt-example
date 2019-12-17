@@ -1,7 +1,7 @@
 <template>
   <b-container id="app">
     <Header />
-    <Modal />
+    <Modal /> <!-- Login / Signup -->
 
     <router-view></router-view>
 

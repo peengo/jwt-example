@@ -1,11 +1,10 @@
 <template>
   <b-nav align="right" class="mt-3">
-    <b-nav-item :to="{ name: 'home'}">Home</b-nav-item>
-    <b-nav-item :to="{ name: 'about'}">About</b-nav-item>
-    <b-nav-item v-b-modal.modal v-if="!currentUser">Login</b-nav-item>
+    <b-nav-item :to="{ name: 'blog'}">Blog</b-nav-item>
+    <b-nav-item v-b-modal.modal v-if="!currentUser">Login / Sign Up</b-nav-item>
     <b-nav-item-dropdown v-else>
       <template v-slot:button-content>{{ currentUser.username }}</template>
-      <b-dropdown-item href="#">Profile</b-dropdown-item>
+      <b-dropdown-item :to="{ name: 'profile'}">Profile</b-dropdown-item>
       <b-dropdown-item @click="logout">Sign Out</b-dropdown-item>
     </b-nav-item-dropdown>
   </b-nav>
@@ -22,6 +21,7 @@ export default {
   methods: {
     logout() {
       this.$store.dispatch("logout");
+      this.$router.push({ name: "blog" });
     }
   }
 };

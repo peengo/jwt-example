@@ -1,10 +1,12 @@
+const { error, TOKEN_MISSING } = require('../utils/errors');
+
 module.exports.verifyToken = async function (req, res, next) {
     const { jwt, SECRET } = req.app.locals;
 
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (token == null) return res.status(401).json({ error: 'token missing' });
+    if (token == null) return res.status(401).json(error(TOKEN_MISSING));
 
     try {
         const payload = await jwt.verifyAsync(token, SECRET);

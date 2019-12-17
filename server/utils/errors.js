@@ -7,6 +7,7 @@ const errors = {
     INVALID_POST_FORMAT: 'invalid post format',
     INVALID_POST_ID: 'invalid post id',
     POSTS_NOT_FOUND: 'posts not found',
+    TOKEN_MISSING: 'token missing',
 
     error(message) {
         return { error: { message } };
