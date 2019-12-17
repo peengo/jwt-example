@@ -15,7 +15,7 @@
         label-for="password-input"
         :invalid-feedback="validation.password.message"
       >
-        <b-form-input id="password-input" v-model="password" :state="validation.password.state"></b-form-input>
+        <b-form-input id="password-input" type="password" v-model="password" :state="validation.password.state"></b-form-input>
       </b-form-group>
 
       <div class="text-center">

@@ -1,7 +1,7 @@
 <template>
   <div class="user">
     <h1>{{ user.username }}</h1>
-    <h3>Posts</h3>
+    <h3>{{ user.created }}</h3>
     <b-alert v-model="isError" variant="danger">{{ error }}</b-alert>
   </div>
 </template>
@@ -15,7 +15,8 @@ export default {
   }),
   async created() {
     try {
-      this.user = await this.getUser();
+      const username = this.$route.params.username;
+      this.user = await this.getUser(username);
     } catch (error) {
       if (error.response.data.error.message) {
         this.isError = true;
@@ -24,10 +25,8 @@ export default {
     }
   },
   methods: {
-    async getUser() {
-      const { data } = await this.$http.get(
-        `/users/${this.$route.params.username}`
-      );
+    async getUser(username) {
+      const { data } = await this.$http.get(`/users/${username}`);
 
       return data;
     }
