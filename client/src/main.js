@@ -9,7 +9,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 import 'bootswatch/dist/lux/bootstrap.min.css';
 Vue.use(BootstrapVue)
 
-import axios from './http';
+import axios from './services/axios.js';
 Vue.prototype.$http = axios;
 
 Vue.config.productionTip = false

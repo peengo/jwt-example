@@ -33,6 +33,20 @@
       </form>
     </template>
     <b-alert v-model="isError" variant="danger">{{ errorMessage }}</b-alert>
+    <div>
+      <b-button type="button" class="btn btn-danger" v-b-modal.modal-delete-user>Delete User Account</b-button>
+
+      <b-modal
+        id="modal-delete-user"
+        centered
+        cancel-title="Yes"
+        ok-title="No"
+        hide-header
+        @cancel="submitUserDelete()"
+      >
+        <p class="my-4">Are you sure you want to delete your account?</p>
+      </b-modal>
+    </div>
   </div>
 </template>
 
@@ -94,6 +108,31 @@ export default {
         console.error(error);
       }
     },
+    async submitUserDelete() {
+      try {
+        const response = await this.deleteUser(this.user.username);
+
+        this.$store.dispatch("logout");
+        /*
+
+        REFACTOR
+
+        */
+        if (this.$router.currentRoute.name !== "blog") {
+          console.log("redirect");
+          this.$router.push({ name: "blog" });
+        }
+        /*
+
+        REFACTOR
+
+        */
+
+        console.log(response);
+      } catch (error) {
+        console.error(error);
+      }
+    },
     async getUserSelf() {
       const { data } = await this.$http.get("/users/self");
 
@@ -101,6 +140,11 @@ export default {
     },
     async patchUser(username, update) {
       const response = await this.$http.patch(`/users/${username}`, update);
+
+      return response;
+    },
+    async deleteUser(username) {
+      const response = await this.$http.delete(`/users/${username}`);
 
       return response;
     }

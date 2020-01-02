@@ -21,7 +21,10 @@ export default {
   methods: {
     logout() {
       this.$store.dispatch("logout");
-      this.$router.push({ name: "blog" });
+      if (this.$router.currentRoute.name !== "blog") {
+        console.log("redirect");
+        this.$router.push({ name: "blog" });
+      }
     }
   }
 };

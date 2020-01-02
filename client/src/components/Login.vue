@@ -4,18 +4,27 @@
       <b-form-group
         :state="validation.username.state"
         label="Username"
-        label-for="username-input"
+        label-for="login-username-input"
         :invalid-feedback="validation.username.message"
       >
-        <b-form-input id="username-input" v-model="username" :state="validation.username.state"></b-form-input>
+        <b-form-input
+          id="login-username-input"
+          v-model="username"
+          :state="validation.username.state"
+        ></b-form-input>
       </b-form-group>
       <b-form-group
         :state="validation.password.state"
         label="Password"
-        label-for="password-input"
+        label-for="login-password-input"
         :invalid-feedback="validation.password.message"
       >
-        <b-form-input id="password-input" type="password" v-model="password" :state="validation.password.state"></b-form-input>
+        <b-form-input
+          id="login-password-input"
+          type="password"
+          v-model="password"
+          :state="validation.password.state"
+        ></b-form-input>
       </b-form-group>
 
       <div class="text-center">
@@ -64,7 +73,20 @@ export default {
           await this.$store.dispatch("fetchAccessToken");
           await this.$store.dispatch("fetchCurrentUser");
 
-          this.$router.push({ name: "blog" });
+          /*
+
+          REFACTOR
+
+          */
+          if (this.$router.currentRoute.name !== "blog") {
+            console.log("redirect");
+            this.$router.push({ name: "blog" });
+          }
+          /*
+
+          REFACTOR
+
+          */
         }
       } catch (error) {
         if (error.response.data.error.message) {

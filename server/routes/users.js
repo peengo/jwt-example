@@ -57,7 +57,7 @@ router.get('/self', verifyToken, async (req, res, next) => {
     try {
         const { users, payload } = req.app.locals;
         
-        const user = await users.findOne({ _id: ObjectID(payload.sub) }, { projection: { _id: 0, password: 0 } });
+        const user = await users.findOne({ _id: ObjectID(payload.sub) }, { projection: { password: 0 } });
 
         if (user) {
             res.json(user);
@@ -75,7 +75,7 @@ router.get('/:username', async (req, res, next) => {
         const { users } = req.app.locals;
         const { username } = req.params;
 
-        const user = await users.findOne({ username }, { projection: { _id: 0, password: 0 } });
+        const user = await users.findOne({ username }, { projection: { password: 0 } });
 
         if (user) {
             res.json(user);

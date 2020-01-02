@@ -4,18 +4,18 @@
       <b-form-group
         :state="validation.username.state"
         label="Username"
-        label-for="username-input"
+        label-for="signup-username-input"
         :invalid-feedback="validation.username.message"
       >
-        <b-form-input id="username-input" v-model="username" :state="validation.username.state"></b-form-input>
+        <b-form-input id="signup-username-input" v-model="username" :state="validation.username.state"></b-form-input>
       </b-form-group>
       <b-form-group
         :state="validation.password.state"
         label="Password"
-        label-for="password-input"
+        label-for="signup-password-input"
         :invalid-feedback="validation.password.message"
       >
-        <b-form-input id="password-input" type="password" v-model="password" :state="validation.password.state"></b-form-input>
+        <b-form-input id="signup-password-input" type="password" v-model="password" :state="validation.password.state"></b-form-input>
       </b-form-group>
 
       <div class="text-center">

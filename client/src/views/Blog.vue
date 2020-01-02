@@ -4,7 +4,11 @@
     <b-list-group>
       <b-list-group-item v-for="post in posts" v-bind:key="post._id">
         {{ post.title }}
-        <router-link :to="{ name: 'user', params: { username: post.username }}">{{ post.username }}</router-link>
+        <router-link
+          v-if="post.user[0]"
+          :to="{ name: 'user', params: { username: post.user[0].username }}"
+        >{{ post.user[0].username }}</router-link>
+        <template v-else>[deleted user]</template>
       </b-list-group-item>
     </b-list-group>
   </div>

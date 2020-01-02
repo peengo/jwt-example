@@ -14,8 +14,6 @@ const { verifyToken } = require('../middlewares/auth');
 const { postSchema } = require('../schemas/post');
 const { ObjectID } = require('mongodb');
 
-const DELETED_USER = '[deleted user]';
-
 // CREATE
 router.post('/', verifyToken, async (req, res, next) => {
     try {
@@ -68,15 +66,12 @@ router.get('/:id', async (req, res, next) => {
                         from: 'users',
                         localField: 'user_id',
                         foreignField: '_id',
-                        as: 'userDetails'
+                        as: 'user'
                     }
                 },
                 { $match: { _id: ObjectID(id) } },
-                { $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$userDetails', 0] }, '$$ROOT'] } } },
-                { $project: { userDetails: 0, user_id: 0, password: 0, _id: 0 } }
+                { $project: { user_id: 0, user: { password: 0, created: 0 } } }
             ]).toArray();
-
-            if (typeof post.username === 'undefined') post.username = DELETED_USER;
 
             if (post) {
                 res.json(post);
@@ -103,17 +98,12 @@ router.get('/', async (req, res, next) => {
                     from: 'users',
                     localField: 'user_id',
                     foreignField: '_id',
-                    as: 'userDetails'
+                    as: 'user'
                 }
             },
             { $sort: { created: -1 } },
-            { $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ['$userDetails', 0] }, '$$ROOT'] } } },
-            { $project: { userDetails: 0, user_id: 0, password: 0 } }
+            { $project: { user_id: 0, user: { password: 0, created: 0 } } }
         ]).toArray();
-
-        postsAll.forEach(post => {
-            if (typeof post.username === 'undefined') post.username = DELETED_USER;
-        });
 
         if (postsAll) {
             res.json(postsAll);
