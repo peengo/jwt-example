@@ -115,6 +115,30 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+// READ ALL FROM USER
+router.get('/user/:username', async (req, res, next) => {
+    try {
+        const { posts, users } = req.app.locals;
+        const { username } = req.params;
+
+        const user = await users.findOne({ username }, { projection: { password: 0 } });
+
+        if (user) {
+            let postsUser = await posts.find({ user_id: ObjectID(user._id) }).toArray();
+
+            if (postsUser) {
+                res.json(postsUser);
+            } else {
+                res.status(404).json(error(POSTS_NOT_FOUND));
+            }
+        } else {
+            res.status(404).json(error(USER_NOT_FOUND));
+        }
+    } catch (e) {
+        next(e);
+    }
+});
+
 // UPDATE
 router.patch('/:id', verifyToken, async (req, res, next) => {
     try {

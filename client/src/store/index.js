@@ -21,10 +21,10 @@ export default new Vuex.Store({
   },
   actions: {
     fetchCurrentUser: async ({ commit }) => {
-      console.log('fetching current user');
+        console.log('fetching current user');
 
-      const { data: currentUser } = await axios.get("/users/self");
-      commit("setCurrentUser", currentUser);
+        const { data: currentUser } = await axios.get("/users/self");
+        commit("setCurrentUser", currentUser);
     },
     logout: ({ commit }) => {
       console.log('logging out');

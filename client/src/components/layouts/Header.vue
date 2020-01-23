@@ -3,7 +3,7 @@
     <b-nav-item :to="{ name: 'blog'}">Blog</b-nav-item>
     <b-nav-item v-b-modal.modal v-if="!currentUser">Login / Sign Up</b-nav-item>
     <b-nav-item-dropdown v-else>
-      <template v-slot:button-content>{{ currentUser.username }}</template>
+      <template v-slot:button-content><span class="text-success">{{ currentUser.username }}</span></template>
       <b-dropdown-item :to="{ name: 'profile'}">Profile</b-dropdown-item>
       <b-dropdown-item @click="logout">Sign Out</b-dropdown-item>
     </b-nav-item-dropdown>

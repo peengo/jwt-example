@@ -17,7 +17,7 @@ router.post('/', async (req, res, next) => {
 
         const { error: validationErrors } = userSchema.validate(
             { username, password },
-            { abortEarly: false }
+            { abortEarly: false, presence: 'required' }
         );
 
         if (!validationErrors) {

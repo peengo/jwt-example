@@ -1,8 +1,8 @@
 <template>
-  <div class="user">
+  <div class="profile mt-5">
     <template v-if="user.username">
       <h3>user: {{ user.username }}</h3>
-      <h3>created: {{ user.created | formatTime }}</h3>
+      <h6>Created: {{ user.created | formatDate }}</h6>
       <form ref="form" @submit.stop.prevent="submitUserUpdate" class="m-5">
         <b-form-group
           :state="validation.username.state"
@@ -51,8 +51,6 @@
 </template>
 
 <script>
-import { format, parseISO } from "date-fns";
-
 export default {
   data: () => ({
     user: {},
@@ -113,21 +111,12 @@ export default {
         const response = await this.deleteUser(this.user.username);
 
         this.$store.dispatch("logout");
-        /*
 
-        REFACTOR
-
-        */
         if (this.$router.currentRoute.name !== "blog") {
           console.log("redirect");
           this.$router.push({ name: "blog" });
         }
-        /*
-
-        REFACTOR
-
-        */
-
+        
         console.log(response);
       } catch (error) {
         console.error(error);
@@ -147,11 +136,6 @@ export default {
       const response = await this.$http.delete(`/users/${username}`);
 
       return response;
-    }
-  },
-  filters: {
-    formatTime(time) {
-      return format(parseISO(time), "dd MMM yyyy - hh:mm a");
     }
   }
 };

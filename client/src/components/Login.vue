@@ -73,20 +73,10 @@ export default {
           await this.$store.dispatch("fetchAccessToken");
           await this.$store.dispatch("fetchCurrentUser");
 
-          /*
-
-          REFACTOR
-
-          */
           if (this.$router.currentRoute.name !== "blog") {
             console.log("redirect");
             this.$router.push({ name: "blog" });
           }
-          /*
-
-          REFACTOR
-
-          */
         }
       } catch (error) {
         if (error.response.data.error.message) {

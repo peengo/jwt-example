@@ -12,6 +12,8 @@ Vue.use(BootstrapVue)
 import axios from './services/axios.js';
 Vue.prototype.$http = axios;
 
+import "./filters";
+
 Vue.config.productionTip = false
 
 new Vue({
